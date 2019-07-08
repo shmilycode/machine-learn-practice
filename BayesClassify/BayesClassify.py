@@ -35,25 +35,48 @@ def trainNB0(trainMatrix, trainCategory):
   p0Denom = 2.0
   p1Denom = 2.0
   for i in range(numMatrix):
-    print(trainMatrix[i])
     if trainCategory[i] == 1:
+      print("1: ", trainMatrix[i])
       p1Num += trainMatrix[i]
       p1Denom += sum(trainMatrix[i])
     else:
+      print("0: ", trainMatrix[i])
       p0Num += trainMatrix[i]
       p0Denom += sum(trainMatrix[i])
   print(p0Num, p0Denom)
   print(p1Num, p1Denom)
-  p0Vec = math.log(p0Num/p0Denom)
-  p1Vec = math.log(p1Num/p1Denom)
+  p0Vec = np.log(p0Num/p0Denom)
+  p1Vec = np.log(p1Num/p1Denom)
   return p0Vec, p1Vec, pAbusive
 
-trainingList, trainCategory = loadDataSet()
-vocabList = createVocabList(trainingList)
-trainingSamples = []
-for vec in trainingList:
-  trainingSamples.append(setOfWords2Vec(vocabList, vec))
-p0Vec, p1Vec, pAbusive = trainNB0(trainingSamples, trainCategory)
-print(p0Vec)
-print(p1Vec)
-print(pAbusive)
+def classifyNB(vec2Classify, p0Vec, p1Vec, pClass1):
+  p1 = sum(vec2Classify*p1Vec) + np.log(pClass1)
+  p0 = sum(vec2Classify*p0Vec) + np.log(pClass1)
+  if p1 > p0:
+    return 1
+  else:
+    return 0
+
+def bagOfWords2VecMn(vocabList, inputSet):
+  returnVec = [0]*len(vocabList)
+  for word in inputSet:
+    if word in inputSet:
+      returnVec[vocabList.index(word)] += 1
+
+  return returnVec
+
+def testingNB():
+  datas, labels = loadDataSet()
+  myVocabList = createVocabList(datas)
+  trainMat = []
+  for data in datas:
+    trainMat.append(bagOfWords2VecMn(myVocabList, data))
+  p0, p1, pAb = trainNB0(np.array(trainMat), np.array(labels))
+  testEntry = ['love', 'my', 'dalmation']
+  thisDoc = np.array(bagOfWords2VecMn(myVocabList,testEntry))
+  print("classify as: ", classifyNB(thisDoc, p0, p1, pAb))
+  testEntry = ['stupid', 'garbage']
+  thisDoc = np.array(bagOfWords2VecMn(myVocabList,testEntry))
+  print("classify as: ", classifyNB(thisDoc, p0, p1, pAb))
+
+testingNB()
